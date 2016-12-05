@@ -87,7 +87,7 @@ func yamlToJson(raw []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	output, err := json.Marshal(data)
+	output, err := json.MarshalIndent(data, "", "  ")
 
 	return output, err
 }
