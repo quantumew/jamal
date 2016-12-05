@@ -6,8 +6,10 @@ YAML to JSON and JSON to YAML conversion tool. Written in Golang so it can be st
 [Build of latest release.](https://github.com/quantumew/jamal/releases)
 
 
-Usage:
-        jamal <action> [<input-file>]
+Usage
+-----
+
+    ./jamal <action> [<input-file>]
 
     Options:
         -h --help       Show this message.
@@ -17,7 +19,9 @@ Usage:
 
         <input-file>    Path to data file.
 
-Examples:
+
+Examples
+--------
 
     # Output YAML from a JSON file.
     jamal json2yaml some-file.json
@@ -27,3 +31,4 @@ Examples:
 
     # Output YAML from JSON from STDIN.
     echo '{"property": 5, "otherThing": true}' | jamal json2yaml
+
