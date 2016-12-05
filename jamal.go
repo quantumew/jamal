@@ -2,6 +2,7 @@
 package main
 
 import (
+    "errors"
 	"github.com/docopt/docopt-go"
 	"github.com/ghodss/yaml"
     "encoding/json"
@@ -40,7 +41,7 @@ func main() {
     )
 
     if dataPath == nil {
-        data, err = ioutil.ReadAll(os.Stdin)
+        data, err = readStdin()
     } else {
         path := dataPath.(string)
         data, err = ioutil.ReadFile(path)
@@ -95,6 +96,22 @@ func jsonToYaml(raw []byte) ([]byte, error) {
     output, err := yaml.Marshal(data)
 
     return output, err
+}
+
+func readStdin() ([]byte, error) {
+	fi, err := os.Stdin.Stat()
+
+	if err != nil {
+        return nil, err
+	}
+
+    if fi.Mode() & os.ModeNamedPipe == 0 {
+        err = errors.New("Nothing piped into stdin.")
+
+        return nil, err
+    }
+
+    return ioutil.ReadAll(os.Stdin)
 }
 
 func logError(msg string, err error) {
