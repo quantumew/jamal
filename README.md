@@ -15,7 +15,7 @@ Usage
         -h --help       Show this message.
 
     Arguments:
-        <action>        Conversion action. [yaml2json|json2yaml]
+        <action>        Conversion action. [yamltojson, y2j, yaml2json | jsontoyaml, j2y, json2yaml]
 
         <input-file>    Path to data file.
 
@@ -30,5 +30,5 @@ Examples
     jamal yaml2json some-file.yaml
 
     # Output YAML from JSON from STDIN.
-    echo '{"property": 5, "otherThing": true}' | jamal json2yaml
+    echo '{"property": 5, "otherThing": true}' | jamal j2y
 

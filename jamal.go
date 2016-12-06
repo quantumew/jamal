@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 )
 
 var logger = log.New(os.Stderr, "", 0)
@@ -17,7 +18,7 @@ func main() {
 	doc := `Jamal
 
         Command line interface for converting JSON to YAML and YAML to JSON.
-        Expects either a input file or data from stdin.
+        Expects either an input file or data from stdin.
 
         Usage:
             jamal <action> [<input-file>]
@@ -27,13 +28,14 @@ func main() {
 
         Arguments:
             <action>        Conversion action.
-                            [yaml2json|yamltojson|json2yaml|jsontoyaml]
+                            [yamltojson, y2j, yaml2json | jsontoyaml, j2y, json2yaml]
 
             <input-file>    Path to data file.
     `
 	arguments, _ := docopt.Parse(doc, nil, true, "Jamal 1.0.0", false)
 	dataPath := arguments["<input-file>"]
 	action := arguments["<action>"].(string)
+	action = strings.ToLower(action)
 
 	var (
 		err         error
@@ -41,15 +43,15 @@ func main() {
 		decodedData []byte
 	)
 
-    // Sort of ugly but this version of docopt does not support this
-    // type of validation.
-	if action != "yaml2json" && action != "yamltojson" {
-        if action != "json2yaml" && action != "jsontoyaml" {
-            logger.Println("Invalid action.")
-            logger.Println(doc)
+	// Sort of ugly but this version of docopt does not support this
+	// type of validation.
+	if action != "yaml2json" && action != "yamltojson" && action != "y2j" {
+		if action != "json2yaml" && action != "jsontoyaml" && action != "j2y" {
+			logger.Println("Invalid action.")
+			logger.Println(doc)
 
-            os.Exit(1)
-        }
+			os.Exit(1)
+		}
 	}
 
 	if dataPath == nil {
@@ -65,9 +67,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if action == "yaml2json" || action == "yamltojson" {
+	if action == "yaml2json" || action == "yamltojson" || action == "y2j" {
 		decodedData, err = yamlToJson(data)
-	} else if action == "json2yaml" || action == "jsontoyaml" {
+	} else {
 		decodedData, err = jsonToYaml(data)
 	}
 
