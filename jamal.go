@@ -26,13 +26,14 @@ func main() {
             -h --help       Show this message.
 
         Arguments:
-            <action>        Conversion action. [yaml2json|json2yaml]
+            <action>        Conversion action.
+                            [yaml2json|yamltojson|json2yaml|jsontoyaml]
 
             <input-file>    Path to data file.
     `
 	arguments, _ := docopt.Parse(doc, nil, true, "Jamal 1.0.0", false)
 	dataPath := arguments["<input-file>"]
-	action := arguments["<action>"]
+	action := arguments["<action>"].(string)
 
 	var (
 		err         error
@@ -40,13 +41,15 @@ func main() {
 		decodedData []byte
 	)
 
-	if (action == nil) || (action.(string) != "yaml2json" && action.(string) != "json2yaml") {
-		logger.Println("Invalid action.")
-		logger.Println(doc)
+    // Sort of ugly but this version of docopt does not support this
+    // type of validation.
+	if action != "yaml2json" && action != "yamltojson" {
+        if action != "json2yaml" && action != "jsontoyaml" {
+            logger.Println("Invalid action.")
+            logger.Println(doc)
 
-		os.Exit(1)
-	} else {
-		action = action.(string)
+            os.Exit(1)
+        }
 	}
 
 	if dataPath == nil {
@@ -62,9 +65,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if action == "yaml2json" {
+	if action == "yaml2json" || action == "yamltojson" {
 		decodedData, err = yamlToJson(data)
-	} else if action == "json2yaml" {
+	} else if action == "json2yaml" || action == "jsontoyaml" {
 		decodedData, err = jsonToYaml(data)
 	}
 
