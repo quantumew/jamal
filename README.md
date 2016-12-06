@@ -5,6 +5,13 @@ YAML to JSON and JSON to YAML conversion tool. Written in Golang so it can be st
 
 [Build of latest release.](https://github.com/quantumew/jamal/releases)
 
+Build
+-----
+
+    go get github.com/quantumew/jamal
+    cd "$GOPATH/src/github.com/quantumew/jamal"
+    go build
+    mv jamal <in you path somewhere>
 
 Usage
 -----
