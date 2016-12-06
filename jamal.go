@@ -84,7 +84,10 @@ func main() {
 
 // Converts YAML to JSON.
 func yamlToJson(raw []byte) ([]byte, error) {
-	var data interface{}
+	var (
+        data interface{}
+        output []byte
+    )
 
 	err := yaml.Unmarshal(raw, &data)
 
@@ -92,7 +95,8 @@ func yamlToJson(raw []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	output, err := json.MarshalIndent(data, "", "  ")
+	output, err = json.MarshalIndent(data, "", "  ")
+    output = append(output, "\n"...)
 
 	return output, err
 }
