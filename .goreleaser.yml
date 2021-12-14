@@ -1,29 +1,23 @@
-# all available options: https://goreleaser.com/customization/
-project_name: jamal
-
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
 builds:
-- binary: jamal
-  env:
-  - CGO_ENABLED=0
-  goos:
-  - darwin
-  - windows
-  - linux
-  goarch:
-  - amd64
-  - arm64
-  - arm
-  goarm:
-  - 6
-  - 7
-  ldflags: []
-
-archive:
-  name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
-  format_overrides:
-  - goos: windows
-    format: zip
-  - goos: darwin
-    format: zip
-  - goos: linux
-    format: zip
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
