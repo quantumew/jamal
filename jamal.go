@@ -1,93 +1,40 @@
-//usr/bin/env go run $0 $@; exit;
 package main
 
 import (
 	"encoding/json"
 	"errors"
-	"github.com/docopt/docopt-go"
-	"github.com/ghodss/yaml"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/docopt/docopt-go"
+	"github.com/ghodss/yaml"
 )
 
-var logger = log.New(os.Stderr, "", 0)
+var (
+	err         error
+	data        []byte
+	decodedData []byte
+	logger      = log.New(os.Stderr, "", 0)
+	y2jOptions  = []string{"y2j", "yaml2json", "yamltojson"}
+	j2yOptions  = []string{"j2y", "json2yaml", "jsontoyaml"}
+)
 
-func main() {
-	doc := `Jamal
-
-        Command line interface for converting JSON to YAML and YAML to JSON.
-        Expects either an input file or data from stdin.
-
-        Usage:
-            jamal <action> [<input-file>]
-
-        Options:
-            -h --help       Show this message.
-
-        Arguments:
-            <action>        Conversion action.
-                            [yamltojson, y2j, yaml2json | jsontoyaml, j2y, json2yaml]
-
-            <input-file>    Path to data file.
-    `
-	arguments, _ := docopt.Parse(doc, nil, true, "Jamal 1.0.0", false)
-	dataPath := arguments["<input-file>"]
-	action := arguments["<action>"].(string)
-	action = strings.ToLower(action)
-
-	var (
-		err         error
-		data        []byte
-		decodedData []byte
-	)
-
-	// Sort of ugly but this version of docopt does not support this
-	// type of validation.
-	if action != "yaml2json" && action != "yamltojson" && action != "y2j" {
-		if action != "json2yaml" && action != "jsontoyaml" && action != "j2y" {
-			logger.Println("Invalid action.")
-			logger.Println(doc)
-
-			os.Exit(1)
+func isFound(slice []string, value string) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
 		}
 	}
-
-	if dataPath == nil {
-		data, err = readStdin()
-	} else {
-		path := dataPath.(string)
-		data, err = ioutil.ReadFile(path)
-	}
-
-	if err != nil {
-		logError("Error occurred loading data.", err)
-
-		os.Exit(1)
-	}
-
-	if action == "yaml2json" || action == "yamltojson" || action == "y2j" {
-		decodedData, err = yamlToJson(data)
-	} else {
-		decodedData, err = jsonToYaml(data)
-	}
-
-	if err != nil {
-		logError("Error occurred converting data.", err)
-
-		os.Exit(1)
-	}
-
-	os.Stdout.Write(decodedData)
+	return false
 }
 
-// Converts YAML to JSON.
 func yamlToJson(raw []byte) ([]byte, error) {
 	var (
-        data interface{}
-        output []byte
-    )
+		data   interface{}
+		output []byte
+	)
 
 	err := yaml.Unmarshal(raw, &data)
 
@@ -96,7 +43,7 @@ func yamlToJson(raw []byte) ([]byte, error) {
 	}
 
 	output, err = json.MarshalIndent(data, "", "  ")
-    output = append(output, "\n"...)
+	output = append(output, "\n"...)
 
 	return output, err
 }
@@ -124,15 +71,71 @@ func readStdin() ([]byte, error) {
 	}
 
 	if fi.Mode()&os.ModeNamedPipe == 0 {
-		err = errors.New("Nothing piped into stdin.")
+		err = errors.New("nothing piped into stdin")
 
 		return nil, err
 	}
 
-	return ioutil.ReadAll(os.Stdin)
+	return io.ReadAll(os.Stdin)
 }
 
 func logError(msg string, err error) {
 	logger.Println(msg)
 	logger.Println(err.Error())
+}
+
+func main() {
+	doc := `Jamal
+
+        Command line interface for converting JSON to YAML and YAML to JSON.
+        Expects either an input file or data from stdin.
+
+        Usage:
+            jamal <action> [<input-file>]
+
+        Options:
+            -h --help       Show this message.
+
+        Arguments:
+            <action>        Conversion action.
+                            [yamltojson, y2j, yaml2json | jsontoyaml, j2y, json2yaml]
+
+            <input-file>    Path to data file.
+    `
+	arguments, _ := docopt.Parse(doc, nil, true, "Jamal 1.0.0", false)
+	dataPath := arguments["<input-file>"]
+	action := arguments["<action>"].(string)
+	action = strings.ToLower(action)
+
+	if dataPath == nil {
+		data, err = readStdin()
+	} else {
+		path := dataPath.(string)
+		data, err = os.ReadFile(path)
+	}
+
+	if err != nil {
+		logError("Error occurred loading data.", err)
+
+		os.Exit(1)
+	}
+
+	switch {
+	case isFound(y2jOptions, action):
+		decodedData, err = yamlToJson(data)
+	case isFound(j2yOptions, action):
+		decodedData, err = jsonToYaml(data)
+	default:
+		logger.Println("Invalid action.")
+		logger.Println(doc)
+		os.Exit(1)
+	}
+
+	if err != nil {
+		logError("Error occurred converting data.", err)
+
+		os.Exit(1)
+	}
+
+	os.Stdout.Write(decodedData)
 }
